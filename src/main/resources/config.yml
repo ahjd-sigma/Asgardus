@@ -1,0 +1,9 @@
+default-stats:
+ HEALTH:
+  default: 100
+  min: 5
+  max: 1000
+ DAMAGE:
+  default: 15
+  min: 0
+  max: 500
