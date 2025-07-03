@@ -3,7 +3,18 @@ default-stats:
   default: 100
   min: 5
   max: 1000
+
  DAMAGE:
   default: 15
   min: 0
   max: 500
+
+ HEALTH_REGENERATION:
+  default: 5
+  min: 0
+  max: 500
+
+ VITALITY:
+  default: 0
+  min: 0
+  max: 100
