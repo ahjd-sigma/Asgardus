@@ -57,12 +57,44 @@ public class AsgStatsAPI {
         requirePlugin().getPlayerManager().getOrCreate(uuid).clearAllTempStats(requirePlugin());
     }
 
-    public static void addTempStat(UUID uuid, StatType stat, int amount, int durationSeconds) {
-        requirePlugin().getPlayerManager().getOrCreate(uuid).addTempStat(stat, amount, durationSeconds, requirePlugin());
+    /**
+     * Adds a named temporary stat boost to a player.
+     */
+    public static void addTempStat(UUID uuid, StatType stat, int amount, int durationSeconds, String key) {
+        requirePlugin().getPlayerManager().getOrCreate(uuid).addTempStat(stat, amount, durationSeconds, key, requirePlugin());
     }
-
-    public static void addTempStat(Player player, StatType stat, int amount, int durationSeconds) {
-        addTempStat(player.getUniqueId(), stat, amount, durationSeconds);
+    public static void addTempStat(Player player, StatType stat, int amount, int durationSeconds, String key) {
+        addTempStat(player.getUniqueId(), stat, amount, durationSeconds, key);
+    }
+    public static void removeTempStat(UUID uuid, String key) {
+        requirePlugin().getPlayerManager().getOrCreate(uuid).removeTempStat(key);
+    }
+    public static void removeTempStat(Player player, String key) {
+        removeTempStat(player.getUniqueId(), key);
+    }
+    /**
+     * Adds a named percentage stat boost to a player.
+     */
+    public static void addPercentageBoost(UUID uuid, StatType stat, int percent, String key, int durationSeconds) {
+        requirePlugin().getPlayerManager().getOrCreate(uuid).addPercentageBoost(stat, percent, key, durationSeconds, requirePlugin());
+    }
+    public static void addPercentageBoost(Player player, StatType stat, int percent, String key, int durationSeconds) {
+        addPercentageBoost(player.getUniqueId(), stat, percent, key, durationSeconds);
+    }
+    public static void removePercentageBoost(UUID uuid, String key) {
+        requirePlugin().getPlayerManager().getOrCreate(uuid).removePercentageBoost(key, requirePlugin());
+    }
+    public static void removePercentageBoost(Player player, String key) {
+        removePercentageBoost(player.getUniqueId(), key);
+    }
+    /**
+     * Clears all temporary and percentage boosts for a player.
+     */
+    public static void clearAllTempStatsAndBoosts(UUID uuid) {
+        requirePlugin().getPlayerManager().getOrCreate(uuid).clearAllTempStatsAndBoosts(requirePlugin());
+    }
+    public static void clearAllTempStatsAndBoosts(Player player) {
+        clearAllTempStatsAndBoosts(player.getUniqueId());
     }
 
     public static void addStatPercent(UUID uuid, StatType stat, int percent) {

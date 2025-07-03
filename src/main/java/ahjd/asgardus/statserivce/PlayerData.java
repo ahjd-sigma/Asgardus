@@ -73,14 +73,19 @@ public class PlayerData {
      * @param durationSeconds The duration in seconds for the temporary increase.
      * @param plugin The plugin instance (must provide a scheduler).
      */
-    public void addTempStat(StatType stat, int amount, int durationSeconds, Asgardus plugin) {
+    public void addTempStat(StatType stat, int amount, int durationSeconds, String key, Asgardus plugin) {
         addStat(stat, amount, plugin);
         Runnable remover = () -> addStat(stat, -amount, plugin);
-        tempBoostRemovers.add(remover);
+        tempBoostRemovers.put(key, remover);
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             remover.run();
-            tempBoostRemovers.remove(remover);
+            tempBoostRemovers.remove(key);
         }, durationSeconds * 20L);
+    }
+
+    public void removeTempStat(String key) {
+        Runnable remover = tempBoostRemovers.remove(key);
+        if (remover != null) remover.run();
     }
 
     /**
@@ -103,11 +108,53 @@ public class PlayerData {
      * @param plugin The plugin instance for stat clamping.
      */
     public void clearAllTempStats(Asgardus plugin) {
-        for (Runnable remover : tempBoostRemovers) {
+        for (Runnable remover : tempBoostRemovers.values()) {
             remover.run();
         }
         tempBoostRemovers.clear();
     }
+
     // Track active temp boosts for clearing
-    private final Set<Runnable> tempBoostRemovers = ConcurrentHashMap.newKeySet();
+    // Remove: private final Set<Runnable> tempBoostRemovers = ConcurrentHashMap.newKeySet();
+    private final Map<String, Runnable> tempBoostRemovers = new ConcurrentHashMap<>();
+    private final Map<String, PercentageBoost> percentageBoosts = new ConcurrentHashMap<>();
+
+    public void addPercentageBoost(StatType stat, int percent, String key, int durationSeconds, Asgardus plugin) {
+        int base = getStat(stat);
+        int delta = (base * percent) / 100;
+        addStat(stat, delta, plugin);
+        PercentageBoost boost = new PercentageBoost(stat, percent, delta);
+        percentageBoosts.put(key, boost);
+        if (durationSeconds > 0) {
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                removePercentageBoost(key, plugin);
+            }, durationSeconds * 20L);
+        }
+    }
+
+    public void removePercentageBoost(String key, Asgardus plugin) {
+        PercentageBoost boost = percentageBoosts.remove(key);
+        if (boost != null) {
+            addStat(boost.stat, -boost.delta, plugin);
+        }
+    }
+
+    public void clearAllTempStatsAndBoosts(Asgardus plugin) {
+        for (Runnable remover : tempBoostRemovers.values()) {
+            remover.run();
+        }
+            tempBoostRemovers.clear();
+        for (String key : percentageBoosts.keySet()) removePercentageBoost(key, plugin);
+    }
+
+    private static class PercentageBoost {
+        final StatType stat;
+        final int percent;
+        final int delta;
+        PercentageBoost(StatType stat, int percent, int delta) {
+            this.stat = stat;
+            this.percent = percent;
+            this.delta = delta;
+        }
+    }
 }

@@ -1,10 +1,12 @@
 package ahjd.asgardus;
 
 import ahjd.asgardus.statserivce.PlayerManager;
+import ahjd.asgardus.statserivce.api.AsgMobStatsAPI;
 import ahjd.asgardus.statserivce.api.AsgStatsAPI;
 import ahjd.asgardus.statserivce.commands.StatsCMD;
 import ahjd.asgardus.statserivce.commands.StatsTabCompleter;
 import ahjd.asgardus.statserivce.listeners.onJoinListener;
+import ahjd.asgardus.statserivce.mob.MobManager;
 import ahjd.asgardus.statserivce.utils.StatSettings;
 import ahjd.asgardus.statserivce.utils.StatType;
 import org.bukkit.configuration.ConfigurationSection;
@@ -17,13 +19,20 @@ public final class Asgardus extends JavaPlugin {
 
     private final Map<StatType, StatSettings> statSettingsMap = new EnumMap<>(StatType.class);
     private PlayerManager playerManager;
+    private MobManager mobManager;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         loadDefaultStats();
+
+        // Initialize managers
         playerManager = new PlayerManager(this);
+        mobManager = new MobManager(this);
+
+        // Initialize APIs
         AsgStatsAPI.init(this);
+        AsgMobStatsAPI.init(this);
 
         if (getCommand("stats") != null) {
             getCommand("stats").setExecutor(new StatsCMD(this));
@@ -33,6 +42,7 @@ public final class Asgardus extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(new onJoinListener(this), this);
+
         getLogger().info("=== Asgardus Enabled ===");
     }
 
@@ -71,8 +81,11 @@ public final class Asgardus extends JavaPlugin {
         return statSettingsMap.getOrDefault(stat, new StatSettings(0, Integer.MIN_VALUE, Integer.MAX_VALUE));
     }
 
-
-    public PlayerManager getPlayerManager(){
+    public PlayerManager getPlayerManager() {
         return this.playerManager;
+    }
+
+    public MobManager getMobManager(){
+        return this.mobManager;
     }
 }
