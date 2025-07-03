@@ -50,14 +50,27 @@ public final class Asgardus extends JavaPlugin {
                 int max = statSection.getInt("max", Integer.MAX_VALUE);
 
                 statSettingsMap.put(stat, new StatSettings(def, min, max));
+
+                // If HEALTH is defined, CURRENT_HEALTH mirrors it
+                if (stat == StatType.HEALTH) {
+                    statSettingsMap.put(StatType.CURRENT_HEALTH, new StatSettings(def, min, max));
+                }
+
             } catch (IllegalArgumentException e) {
                 getLogger().warning("Invalid stat in config: " + key);
             }
         }
     }
+
     public StatSettings getStatSettings(StatType stat) {
+        // Mirror HEALTH config for CURRENT_HEALTH dynamically
+        if (stat == StatType.CURRENT_HEALTH) {
+            StatSettings health = statSettingsMap.get(StatType.HEALTH);
+            if (health != null) return new StatSettings(health.getDefaultValue(), health.getMinValue(), health.getMaxValue());
+        }
         return statSettingsMap.getOrDefault(stat, new StatSettings(0, Integer.MIN_VALUE, Integer.MAX_VALUE));
     }
+
 
     public PlayerManager getPlayerManager(){
         return this.playerManager;

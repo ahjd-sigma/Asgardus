@@ -12,25 +12,34 @@ public class AsgStatsAPI {
 
     private static Asgardus plugin;
 
-    // Called once on plugin enable
+    /**
+     * Called once on plugin enable. Must be called before any API usage.
+     */
     public static void init(Asgardus instance) {
         plugin = instance;
     }
 
+    private static Asgardus requirePlugin() {
+        if (plugin == null) {
+            throw new IllegalStateException("AsgStatsAPI.plugin is not initialized! Make sure AsgStatsAPI.init() is called in onEnable().");
+        }
+        return plugin;
+    }
+
     public static int getStat(UUID uuid, StatType stat) {
-        return plugin.getPlayerManager().getOrCreate(uuid).getStat(stat);
+        return requirePlugin().getPlayerManager().getOrCreate(uuid).getStat(stat);
     }
 
     public static void setStat(UUID uuid, StatType stat, int value) {
-        plugin.getPlayerManager().getOrCreate(uuid).setStat(stat, value, plugin);
+        requirePlugin().getPlayerManager().getOrCreate(uuid).setStat(stat, value, requirePlugin());
     }
 
     public static void addStat(UUID uuid, StatType stat, int value) {
-        plugin.getPlayerManager().getOrCreate(uuid).addStat(stat, value, plugin);
+        requirePlugin().getPlayerManager().getOrCreate(uuid).addStat(stat, value, requirePlugin());
     }
 
     public static void resetStat(UUID uuid, StatType stat) {
-        int def = plugin.getStatSettings(stat).getDefaultValue();
+        int def = requirePlugin().getStatSettings(stat).getDefaultValue();
         setStat(uuid, stat, def);
     }
 
@@ -41,55 +50,25 @@ public class AsgStatsAPI {
     }
 
     public static Map<StatType, Integer> getAllStats(UUID uuid) {
-        return plugin.getPlayerManager().getOrCreate(uuid).getAllStats();
+        return requirePlugin().getPlayerManager().getOrCreate(uuid).getAllStats();
     }
 
-    /**
-     * Clears all active temporary stat boosts for a player (duration-based boosts).
-     * @param uuid The player's UUID.
-     */
     public static void clearAllTempStats(UUID uuid) {
-        plugin.getPlayerManager().getOrCreate(uuid).clearAllTempStats(plugin);
+        requirePlugin().getPlayerManager().getOrCreate(uuid).clearAllTempStats(requirePlugin());
     }
 
-    /**
-     * Adds a temporary stat increase for a specified duration (in seconds).
-     * @param uuid The player's UUID.
-     * @param stat The stat to modify.
-     * @param amount The amount to add.
-     * @param durationSeconds The duration in seconds for the temporary increase.
-     */
     public static void addTempStat(UUID uuid, StatType stat, int amount, int durationSeconds) {
-        plugin.getPlayerManager().getOrCreate(uuid).addTempStat(stat, amount, durationSeconds, plugin);
+        requirePlugin().getPlayerManager().getOrCreate(uuid).addTempStat(stat, amount, durationSeconds, requirePlugin());
     }
 
-    /**
-     * Adds a temporary stat increase for a specified duration (in seconds).
-     * @param player The Player object.
-     * @param stat The stat to modify.
-     * @param amount The amount to add.
-     * @param durationSeconds The duration in seconds for the temporary increase.
-     */
     public static void addTempStat(Player player, StatType stat, int amount, int durationSeconds) {
         addTempStat(player.getUniqueId(), stat, amount, durationSeconds);
     }
 
-    /**
-     * Adds a percentage-based increase to a stat (e.g., +150% of current value).
-     * @param uuid The player's UUID.
-     * @param stat The stat to modify.
-     * @param percent The percent to add (e.g., 150 for +150%).
-     */
     public static void addStatPercent(UUID uuid, StatType stat, int percent) {
-        plugin.getPlayerManager().getOrCreate(uuid).addStatPercent(stat, percent, plugin);
+        requirePlugin().getPlayerManager().getOrCreate(uuid).addStatPercent(stat, percent, requirePlugin());
     }
 
-    /**
-     * Adds a percentage-based increase to a stat (e.g., +150% of current value).
-     * @param player The Player object.
-     * @param stat The stat to modify.
-     * @param percent The percent to add (e.g., 150 for +150%).
-     */
     public static void addStatPercent(Player player, StatType stat, int percent) {
         addStatPercent(player.getUniqueId(), stat, percent);
     }
