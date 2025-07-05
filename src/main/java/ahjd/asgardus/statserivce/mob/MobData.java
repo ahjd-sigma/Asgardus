@@ -13,14 +13,16 @@ public class MobData {
     private Tier tier;
     private MobType mobType;
     private Behaviour behaviour;
+    private CombatType combatType;
 
-    public MobData(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour) {
+    public MobData(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour, CombatType combatType) {
         this.uuid = uuid;
         this.stats = new EnumMap<>(StatType.class);
         this.stats.putAll(stats);
         this.tier = tier;
         this.mobType = mobType;
         this.behaviour = behaviour;
+        this.combatType = combatType;
     }
 
     public UUID getUuid() { return uuid; }
@@ -28,10 +30,12 @@ public class MobData {
     public Tier getTier() { return tier; }
     public MobType getMobType() { return mobType; }
     public Behaviour getBehaviour() { return behaviour; }
+    public CombatType getCombatType() {return combatType; }
 
     public void setTier(Tier tier) { this.tier = tier; }
     public void setMobType(MobType mobType) { this.mobType = mobType; }
     public void setBehaviour(Behaviour behaviour) { this.behaviour = behaviour; }
+    public void setCombatType(CombatType combatType){this.combatType = combatType;}
 
     public int getStat(StatType stat) { return stats.getOrDefault(stat, 0); }
     public void setStat(StatType stat, int value) { stats.put(stat, value); }

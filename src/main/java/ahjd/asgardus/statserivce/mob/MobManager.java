@@ -3,6 +3,7 @@ package ahjd.asgardus.statserivce.mob;
 
 import ahjd.asgardus.Asgardus;
 import ahjd.asgardus.statserivce.utils.StatType;
+import org.checkerframework.checker.units.qual.C;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,28 +20,28 @@ public class MobManager {
         this.plugin = plugin;
     }
 
-    public UUID createMob(Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour) {
+    public UUID createMob(Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour, CombatType combatType) {
         UUID uuid = UUID.randomUUID();
-        MobData mobData = new MobData(uuid, stats, tier, mobType, behaviour);
+        MobData mobData = new MobData(uuid, stats, tier, mobType, behaviour, combatType);
         mobDataMap.put(uuid, mobData);
         return uuid;
     }
 
-    public void createMob(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour) {
-        MobData mobData = new MobData(uuid, stats, tier, mobType, behaviour);
+    public void createMob(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour, CombatType combatType) {
+        MobData mobData = new MobData(uuid, stats, tier, mobType, behaviour, combatType);
         mobDataMap.put(uuid, mobData);
     }
 
     // Overloaded methods for backward compatibility (default to NEUTRAL behaviour)
     public UUID createMob(Map<StatType, Integer> stats, Tier tier, MobType mobType) {
-        return createMob(stats, tier, mobType, Behaviour.NEUTRAL);
+        return createMob(stats, tier, mobType, Behaviour.NEUTRAL, CombatType.MELEE);
     }
 
     public void createMob(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType) {
-        createMob(uuid, stats, tier, mobType, Behaviour.NEUTRAL);
+        createMob(uuid, stats, tier, mobType, Behaviour.NEUTRAL, CombatType.MELEE);
     }
 
-    public boolean editMob(UUID uuid, Map<StatType, Integer> newStats, Tier tier, MobType mobType, Behaviour behaviour) {
+    public boolean editMob(UUID uuid, Map<StatType, Integer> newStats, Tier tier, MobType mobType, Behaviour behaviour, CombatType combatType) {
         MobData mob = mobDataMap.get(uuid);
         if (mob == null) return false;
 
@@ -48,17 +49,7 @@ public class MobManager {
         mob.setTier(tier);
         mob.setMobType(mobType);
         mob.setBehaviour(behaviour);
-        return true;
-    }
-
-    // Overloaded method for backward compatibility
-    public boolean editMob(UUID uuid, Map<StatType, Integer> newStats, Tier tier, MobType mobType) {
-        MobData mob = mobDataMap.get(uuid);
-        if (mob == null) return false;
-
-        mob.setStats(newStats);
-        mob.setTier(tier);
-        mob.setMobType(mobType);
+        mob.setCombatType(combatType);
         return true;
     }
 
@@ -67,6 +58,14 @@ public class MobManager {
         if (mob == null) return false;
 
         mob.setBehaviour(behaviour);
+        return true;
+    }
+
+    public boolean setCombatType(UUID uuid, CombatType combatType) {
+        MobData mob = mobDataMap.get(uuid);
+        if (mob == null) return false;
+
+        mob.setCombatType(combatType);
         return true;
     }
 
@@ -99,6 +98,13 @@ public class MobManager {
     public List<UUID> getAllMobsOfBehaviour(Behaviour behaviour) {
         return mobDataMap.values().stream()
                 .filter(mob -> mob.getBehaviour() == behaviour)
+                .map(MobData::getUuid)
+                .collect(Collectors.toList());
+    }
+
+    public List<UUID> getAllMobsOfCombatType(CombatType combatType) {
+        return mobDataMap.values().stream()
+                .filter(mob -> mob.getCombatType() == combatType)
                 .map(MobData::getUuid)
                 .collect(Collectors.toList());
     }

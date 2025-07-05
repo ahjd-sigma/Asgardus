@@ -1,11 +1,8 @@
 package ahjd.asgardus.statserivce.api;
 
 import ahjd.asgardus.Asgardus;
+import ahjd.asgardus.statserivce.mob.*;
 import ahjd.asgardus.statserivce.utils.StatType;
-import ahjd.asgardus.statserivce.mob.MobData;
-import ahjd.asgardus.statserivce.mob.MobType;
-import ahjd.asgardus.statserivce.mob.Tier;
-import ahjd.asgardus.statserivce.mob.Behaviour;
 import org.bukkit.entity.Entity;
 
 import java.util.Map;
@@ -33,71 +30,29 @@ public class AsgMobStatsAPI {
     /**
      * Create mob with auto-generated UUID and behaviour
      */
-    public static UUID createMob(Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour) {
-        return requirePlugin().getMobManager().createMob(stats, tier, mobType, behaviour);
-    }
-
-    /**
-     * Create mob with auto-generated UUID (defaults to NEUTRAL behaviour)
-     */
-    public static UUID createMob(Map<StatType, Integer> stats, Tier tier, MobType mobType) {
-        return requirePlugin().getMobManager().createMob(stats, tier, mobType);
+    public static UUID createMob(Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour, CombatType combatType) {
+        return requirePlugin().getMobManager().createMob(stats, tier, mobType, behaviour, combatType);
     }
 
     /**
      * Create mob with specific UUID (e.g., entity UUID) and behaviour
      */
-    public static void createMob(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour) {
-        requirePlugin().getMobManager().createMob(uuid, stats, tier, mobType, behaviour);
-    }
-
-    /**
-     * Create mob with specific UUID (e.g., entity UUID) - defaults to NEUTRAL behaviour
-     */
-    public static void createMob(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType) {
-        requirePlugin().getMobManager().createMob(uuid, stats, tier, mobType);
-    }
-
-    /**
-     * Create mob using entity UUID with behaviour
-     */
-    public static void createMob(Entity entity, Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour) {
-        createMob(entity.getUniqueId(), stats, tier, mobType, behaviour);
-    }
-
-    /**
-     * Create mob using entity UUID (defaults to NEUTRAL behaviour)
-     */
-    public static void createMob(Entity entity, Map<StatType, Integer> stats, Tier tier, MobType mobType) {
-        createMob(entity.getUniqueId(), stats, tier, mobType);
+    public static void createMob(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour, CombatType combatType) {
+        requirePlugin().getMobManager().createMob(uuid, stats, tier, mobType, behaviour, combatType);
     }
 
     /**
      * Edit existing mob completely with behaviour
      */
-    public static boolean editMob(UUID uuid, Map<StatType, Integer> newStats, Tier tier, MobType mobType, Behaviour behaviour) {
-        return requirePlugin().getMobManager().editMob(uuid, newStats, tier, mobType, behaviour);
-    }
-
-    /**
-     * Edit existing mob completely (keeps existing behaviour)
-     */
-    public static boolean editMob(UUID uuid, Map<StatType, Integer> newStats, Tier tier, MobType mobType) {
-        return requirePlugin().getMobManager().editMob(uuid, newStats, tier, mobType);
+    public static boolean editMob(UUID uuid, Map<StatType, Integer> newStats, Tier tier, MobType mobType, Behaviour behaviour, CombatType combatType) {
+        return requirePlugin().getMobManager().editMob(uuid, newStats, tier, mobType, behaviour, combatType);
     }
 
     /**
      * Edit existing mob using entity with behaviour
      */
-    public static boolean editMob(Entity entity, Map<StatType, Integer> newStats, Tier tier, MobType mobType, Behaviour behaviour) {
-        return editMob(entity.getUniqueId(), newStats, tier, mobType, behaviour);
-    }
-
-    /**
-     * Edit existing mob using entity (keeps existing behaviour)
-     */
-    public static boolean editMob(Entity entity, Map<StatType, Integer> newStats, Tier tier, MobType mobType) {
-        return editMob(entity.getUniqueId(), newStats, tier, mobType);
+    public static boolean editMob(Entity entity, Map<StatType, Integer> newStats, Tier tier, MobType mobType, Behaviour behaviour, CombatType combatType) {
+        return editMob(entity.getUniqueId(), newStats, tier, mobType, behaviour, combatType);
     }
 
     /**
@@ -299,6 +254,35 @@ public class AsgMobStatsAPI {
         return setBehaviour(entity.getUniqueId(), behaviour);
     }
 
+    /**
+     * Get mob combat type
+     */
+    public static CombatType getCombatType(UUID uuid) {
+        MobData mob = requirePlugin().getMobManager().getMob(uuid);
+        return mob != null ? mob.getCombatType() : null;
+    }
+
+    /**
+     * Get combat type by entity
+     */
+    public static CombatType getCombatType(Entity entity) {
+        return getCombatType(entity.getUniqueId());
+    }
+
+    /**
+     * Set mob combat type
+     */
+    public static boolean setCombatType(UUID uuid, CombatType combatType) {
+        return requirePlugin().getMobManager().setCombatType(uuid, combatType);
+    }
+
+    /**
+     * Set mob combat type by entity
+     */
+    public static boolean setCombatType(Entity entity, CombatType combatType) {
+        return setCombatType(entity.getUniqueId(), combatType);
+    }
+
     // ===== QUERY METHODS =====
 
     /**
@@ -314,6 +298,10 @@ public class AsgMobStatsAPI {
 
     public static List<UUID> getAllMobsOfBehaviour(Behaviour behaviour) {
         return requirePlugin().getMobManager().getAllMobsOfBehaviour(behaviour);
+    }
+
+    public static List<UUID> getAllMobsOfCombatType(CombatType combatType) {
+        return requirePlugin().getMobManager().getAllMobsOfCombatType(combatType);
     }
 
     public static List<UUID> getAllMobs() {
@@ -396,11 +384,11 @@ Map<StatType, Integer> eliteStats = Map.of(
 );
 
 // Create with auto-generated UUID
-UUID skeletonUUID = AsgMobStatsAPI.createMob(eliteStats, Tier.ELITE, MobType.SKELETON, Behaviour.AGGRESSIVE);
+UUID skeletonUUID = AsgMobStatsAPI.createMob(eliteStats, Tier.ELITE, MobType.SKELETON, Behaviour.AGGRESSIVE, CombatType.RANGED);
 
 // Create using existing entity
 Entity dragonEntity = world.spawnEntity(location, EntityType.ENDER_DRAGON);
-AsgMobStatsAPI.createMob(dragonEntity, eliteStats, Tier.BOSS, MobType.DRAGON, Behaviour.PROTECTIVE);
+AsgMobStatsAPI.createMob(dragonEntity, eliteStats, Tier.BOSS, MobType.DRAGON, Behaviour.PROTECTIVE, CombatType.HYBRID);
 
 // 2. RETRIEVING & MODIFYING MOBS
 MobData skeleton = AsgMobStatsAPI.getMob(skeletonUUID);
@@ -408,10 +396,12 @@ if (skeleton != null) {
     // Get current stats
     int health = skeleton.getStat(StatType.HEALTH);
     Behaviour currentBehaviour = skeleton.getBehaviour();
+    CombatType currentCombatType = skeleton.getCombatType();
 
     // Modify individual properties
     AsgMobStatsAPI.setStat(skeletonUUID, StatType.DAMAGE, 50);
     AsgMobStatsAPI.setBehaviour(skeletonUUID, Behaviour.NEUTRAL);
+    AsgMobStatsAPI.setCombatType(skeletonUUID, CombatType.MELEE);
     AsgMobStatsAPI.setTier(skeletonUUID, Tier.LEGENDARY);
 }
 
@@ -430,49 +420,6 @@ AsgMobStatsAPI.removePercentageBoost(skeletonUUID, "healing_aura");
 List<UUID> allEliteMobs = AsgMobStatsAPI.getAllMobsOfTier(Tier.ELITE);
 List<UUID> allDragons = AsgMobStatsAPI.getAllMobsOfType(MobType.DRAGON);
 List<UUID> allAggressive = AsgMobStatsAPI.getAllMobsOfBehaviour(Behaviour.AGGRESSIVE);
-
-// 5. EXTERNAL PLUGIN INTEGRATION EXAMPLES
-
-// Example A: Buff System - "Berserk mode for all aggressive mobs"
-public void activateBerserkMode() {
-    for (UUID uuid : AsgMobStatsAPI.getAllMobsOfBehaviour(Behaviour.AGGRESSIVE)) {
-        AsgMobStatsAPI.addTempStat(uuid, StatType.DAMAGE, 50, 120, "berserk");
-        AsgMobStatsAPI.addTempStat(uuid, StatType.SPEED, 25, 120, "berserk");
-    }
-}
-
-// Example B: Event System - "Passive mobs flee when damaged"
-@EventHandler
-public void onMobDamage(EntityDamageEvent event) {
-    if (AsgMobStatsAPI.hasMob(event.getEntity())) {
-        Behaviour behaviour = AsgMobStatsAPI.getBehaviour(event.getEntity());
-        if (behaviour == Behaviour.PASSIVE) {
-            // Apply flee effect
-            event.getEntity().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 200, 2));
-        }
-    }
-}
-
-// Example C: Death Events - "Terrorist mobs explode on death"
-@EventHandler
-public void onMobDeath(EntityDeathEvent event) {
-    if (AsgMobStatsAPI.hasMob(event.getEntity())) {
-        Behaviour behaviour = AsgMobStatsAPI.getBehaviour(event.getEntity());
-        if (behaviour == Behaviour.TERRORIST) {
-            Location loc = event.getEntity().getLocation();
-            loc.getWorld().createExplosion(loc, 4.0f, true, true);
-        }
-    }
-}
-
-// Example D: Scaling System - "Elite+ mobs get stronger over time"
-public void scaleMobsOverTime() {
-    for (UUID uuid : AsgMobStatsAPI.getAllMobs()) {
-        MobData mob = AsgMobStatsAPI.getMob(uuid);
-        if (mob != null && (mob.getTier() == Tier.ELITE || mob.getTier() == Tier.LEGENDARY)) {
-            int currentHealth = mob.getStat(StatType.HEALTH);
-            AsgMobStatsAPI.setStat(uuid, StatType.HEALTH, currentHealth + 10);
-        }
-    }
-}
+List<UUID> allRangedMobs = AsgMobStatsAPI.getAllMobsOfCombatType(CombatType.RANGED);
+List<UUID> allSupportMobs = AsgMobStatsAPI.getAllMobsOfCombatType(CombatType.SUPPORT);
  */
