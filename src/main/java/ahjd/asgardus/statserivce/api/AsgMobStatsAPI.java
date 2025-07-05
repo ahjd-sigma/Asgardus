@@ -5,6 +5,7 @@ import ahjd.asgardus.statserivce.mob.*;
 import ahjd.asgardus.statserivce.utils.StatType;
 import org.bukkit.entity.Entity;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.List;
@@ -118,7 +119,7 @@ public class AsgMobStatsAPI {
     public static void setStat(UUID uuid, StatType stat, int value) {
         MobData mob = requirePlugin().getMobManager().getMob(uuid);
         if (mob != null) {
-            mob.setStat(stat, value);
+            mob.setStat(stat, Math.max(0, value)); // Ensure non-negative
         }
     }
 
@@ -135,7 +136,8 @@ public class AsgMobStatsAPI {
     public static void addStat(UUID uuid, StatType stat, int value) {
         MobData mob = requirePlugin().getMobManager().getMob(uuid);
         if (mob != null) {
-            mob.setStat(stat, mob.getStat(stat) + value);
+            int newValue = Math.max(0, mob.getStat(stat) + value);
+            mob.setStat(stat, newValue);
         }
     }
 
@@ -159,6 +161,31 @@ public class AsgMobStatsAPI {
      */
     public static Map<StatType, Integer> getAllStats(Entity entity) {
         return getAllStats(entity.getUniqueId());
+    }
+
+    // ===== NEW METHODS NEEDED BY GUI =====
+
+    /**
+     * Set all stats at once (needed by GUI)
+     */
+    public static boolean setStats(UUID uuid, Map<StatType, Integer> stats) {
+        MobData mob = requirePlugin().getMobManager().getMob(uuid);
+        if (mob != null) {
+            // Validate all stats are non-negative
+            for (Map.Entry<StatType, Integer> entry : stats.entrySet()) {
+                int value = Math.max(0, entry.getValue());
+                mob.setStat(entry.getKey(), value);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Set all stats by entity
+     */
+    public static boolean setStats(Entity entity, Map<StatType, Integer> stats) {
+        return setStats(entity.getUniqueId(), stats);
     }
 
     /**
@@ -313,15 +340,15 @@ public class AsgMobStatsAPI {
     /**
      * Adds a named temporary stat boost to a mob.
      */
-    public static void addTempStat(UUID uuid, StatType stat, int amount, int durationSeconds, String key) {
+    public static void addTempStat(UUID uuid, StatType stat, int amount, String key, int durationSeconds) {
         MobData mob = requirePlugin().getMobManager().getMob(uuid);
         if (mob != null) {
             mob.addTempStat(stat, amount, durationSeconds, key, requirePlugin());
         }
     }
 
-    public static void addTempStat(Entity entity, StatType stat, int amount, int durationSeconds, String key) {
-        addTempStat(entity.getUniqueId(), stat, amount, durationSeconds, key);
+    public static void addTempStat(Entity entity, StatType stat, int amount, String key, int durationSeconds) {
+        addTempStat(entity.getUniqueId(), stat, amount, key, durationSeconds);
     }
 
     public static void removeTempStat(UUID uuid, String key) {
@@ -373,7 +400,42 @@ public class AsgMobStatsAPI {
     public static void clearAllTempStatsAndBoosts(Entity entity) {
         clearAllTempStatsAndBoosts(entity.getUniqueId());
     }
+
+    // ===== VALIDATION METHODS =====
+
+    /**
+     * Validate stat value is within acceptable range
+     */
+    public static int validateStatValue(StatType stat, int value) {
+        // Ensure minimum value is 0
+        value = Math.max(0, value);
+
+        // Set reasonable maximum limits based on stat type
+        return switch (stat) {
+            case HEALTH, CURRENT_HEALTH -> Math.min(value, 100000);
+            case DAMAGE -> Math.min(value, 10000);
+            case HEALTH_REGENERATION -> Math.min(value, 1000);
+            case VITALITY -> Math.min(value, 10000);
+            case KNOCKBACK -> Math.min(value, 100);
+            case KNOCKBACK_RESISTANCE -> Math.min(value, 100);
+            case FALL_DAMAGE_RESISTANCE -> Math.min(value, 100);
+            case FIRE_RESISTANCE -> Math.min(value, 100);
+            default -> value;
+        };
+    }
+
+    /**
+     * Bulk validate stats map
+     */
+    public static Map<StatType, Integer> validateStats(Map<StatType, Integer> stats) {
+        Map<StatType, Integer> validatedStats = new HashMap<>();
+        for (Map.Entry<StatType, Integer> entry : stats.entrySet()) {
+            validatedStats.put(entry.getKey(), validateStatValue(entry.getKey(), entry.getValue()));
+        }
+        return validatedStats;
+    }
 }
+
 /* ===== USAGE EXAMPLES =====
 
 // 1. CREATING MOBS
@@ -388,7 +450,7 @@ UUID skeletonUUID = AsgMobStatsAPI.createMob(eliteStats, Tier.ELITE, MobType.SKE
 
 // Create using existing entity
 Entity dragonEntity = world.spawnEntity(location, EntityType.ENDER_DRAGON);
-AsgMobStatsAPI.createMob(dragonEntity, eliteStats, Tier.BOSS, MobType.DRAGON, Behaviour.PROTECTIVE, CombatType.HYBRID);
+AsgMobStatsAPI.createMob(dragonEntity.getUniqueId(), eliteStats, Tier.BOSS, MobType.DRAGON, Behaviour.PROTECTIVE, CombatType.HYBRID);
 
 // 2. RETRIEVING & MODIFYING MOBS
 MobData skeleton = AsgMobStatsAPI.getMob(skeletonUUID);
@@ -405,21 +467,22 @@ if (skeleton != null) {
     AsgMobStatsAPI.setTier(skeletonUUID, Tier.LEGENDARY);
 }
 
-// 3. TEMPORARY STAT MODIFICATIONS
+// 3. TEMPORARY STAT MODIFICATIONS )
 // Add temporary damage boost for 30 seconds
-AsgMobStatsAPI.addTempStat(skeletonUUID, StatType.DAMAGE, 25, 30, "rage_boost");
+AsgMobStatsAPI.addTempStat(skeletonUUID, StatType.DAMAGE, 25, "rage_boost", 30);
 
 // Add 50% health boost for 60 seconds
 AsgMobStatsAPI.addPercentageBoost(skeletonUUID, StatType.HEALTH, 50, "healing_aura", 60);
 
-// Remove specific boosts
-AsgMobStatsAPI.removeTempStat(skeletonUUID, "rage_boost");
-AsgMobStatsAPI.removePercentageBoost(skeletonUUID, "healing_aura");
+// 4. BULK STAT UPDATES (NEW)
+Map<StatType, Integer> newStats = Map.of(
+    StatType.HEALTH, 200,
+    StatType.DAMAGE, 45,
+    StatType.KNOCKBACK_RESISTANCE, 80
+);
+AsgMobStatsAPI.setStats(skeletonUUID, newStats);
 
-// 4. QUERYING MOBS
-List<UUID> allEliteMobs = AsgMobStatsAPI.getAllMobsOfTier(Tier.ELITE);
-List<UUID> allDragons = AsgMobStatsAPI.getAllMobsOfType(MobType.DRAGON);
-List<UUID> allAggressive = AsgMobStatsAPI.getAllMobsOfBehaviour(Behaviour.AGGRESSIVE);
-List<UUID> allRangedMobs = AsgMobStatsAPI.getAllMobsOfCombatType(CombatType.RANGED);
-List<UUID> allSupportMobs = AsgMobStatsAPI.getAllMobsOfCombatType(CombatType.SUPPORT);
+// 5. VALIDATION (NEW)
+int validatedHealth = AsgMobStatsAPI.validateStatValue(StatType.HEALTH, -50); // Returns 0
+Map<StatType, Integer> validatedStats = AsgMobStatsAPI.validateStats(eliteStats);
  */

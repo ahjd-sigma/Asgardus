@@ -32,15 +32,6 @@ public class MobManager {
         mobDataMap.put(uuid, mobData);
     }
 
-    // Overloaded methods for backward compatibility (default to NEUTRAL behaviour)
-    public UUID createMob(Map<StatType, Integer> stats, Tier tier, MobType mobType) {
-        return createMob(stats, tier, mobType, Behaviour.NEUTRAL, CombatType.MELEE);
-    }
-
-    public void createMob(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType) {
-        createMob(uuid, stats, tier, mobType, Behaviour.NEUTRAL, CombatType.MELEE);
-    }
-
     public boolean editMob(UUID uuid, Map<StatType, Integer> newStats, Tier tier, MobType mobType, Behaviour behaviour, CombatType combatType) {
         MobData mob = mobDataMap.get(uuid);
         if (mob == null) return false;
