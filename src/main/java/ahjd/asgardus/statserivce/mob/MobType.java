@@ -5,15 +5,7 @@ public enum MobType {
     ZOMBIE,
     SPIDER,
     CREEPER,
-    ENDERMAN,
-    DRAGON,
+    ENDER,
     WITHER,
-    CUSTOM_BOSS,
-    FIRE_ELEMENTAL,
-    ICE_GIANT,
-    NECROMANCER,
-    PALADIN,
-    ASSASSIN,
-    MAGE,
-    WARRIOR
+    BLAZE
 }

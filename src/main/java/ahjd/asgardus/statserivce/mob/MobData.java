@@ -12,22 +12,26 @@ public class MobData {
     private final Map<StatType, Integer> stats;
     private Tier tier;
     private MobType mobType;
+    private Behaviour behaviour;
 
-    public MobData(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType) {
+    public MobData(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour) {
         this.uuid = uuid;
         this.stats = new EnumMap<>(StatType.class);
         this.stats.putAll(stats);
         this.tier = tier;
         this.mobType = mobType;
+        this.behaviour = behaviour;
     }
 
     public UUID getUuid() { return uuid; }
     public Map<StatType, Integer> getStats() { return new EnumMap<>(stats); }
     public Tier getTier() { return tier; }
     public MobType getMobType() { return mobType; }
+    public Behaviour getBehaviour() { return behaviour; }
 
     public void setTier(Tier tier) { this.tier = tier; }
     public void setMobType(MobType mobType) { this.mobType = mobType; }
+    public void setBehaviour(Behaviour behaviour) { this.behaviour = behaviour; }
 
     public int getStat(StatType stat) { return stats.getOrDefault(stat, 0); }
     public void setStat(StatType stat, int value) { stats.put(stat, value); }

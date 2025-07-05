@@ -1,3 +1,4 @@
+
 package ahjd.asgardus.statserivce.mob;
 
 import ahjd.asgardus.Asgardus;
@@ -18,18 +19,39 @@ public class MobManager {
         this.plugin = plugin;
     }
 
-    public UUID createMob(Map<StatType, Integer> stats, Tier tier, MobType mobType) {
+    public UUID createMob(Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour) {
         UUID uuid = UUID.randomUUID();
-        MobData mobData = new MobData(uuid, stats, tier, mobType);
+        MobData mobData = new MobData(uuid, stats, tier, mobType, behaviour);
         mobDataMap.put(uuid, mobData);
         return uuid;
     }
 
-    public void createMob(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType) {
-        MobData mobData = new MobData(uuid, stats, tier, mobType);
+    public void createMob(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType, Behaviour behaviour) {
+        MobData mobData = new MobData(uuid, stats, tier, mobType, behaviour);
         mobDataMap.put(uuid, mobData);
     }
 
+    // Overloaded methods for backward compatibility (default to NEUTRAL behaviour)
+    public UUID createMob(Map<StatType, Integer> stats, Tier tier, MobType mobType) {
+        return createMob(stats, tier, mobType, Behaviour.NEUTRAL);
+    }
+
+    public void createMob(UUID uuid, Map<StatType, Integer> stats, Tier tier, MobType mobType) {
+        createMob(uuid, stats, tier, mobType, Behaviour.NEUTRAL);
+    }
+
+    public boolean editMob(UUID uuid, Map<StatType, Integer> newStats, Tier tier, MobType mobType, Behaviour behaviour) {
+        MobData mob = mobDataMap.get(uuid);
+        if (mob == null) return false;
+
+        mob.setStats(newStats);
+        mob.setTier(tier);
+        mob.setMobType(mobType);
+        mob.setBehaviour(behaviour);
+        return true;
+    }
+
+    // Overloaded method for backward compatibility
     public boolean editMob(UUID uuid, Map<StatType, Integer> newStats, Tier tier, MobType mobType) {
         MobData mob = mobDataMap.get(uuid);
         if (mob == null) return false;
@@ -37,6 +59,14 @@ public class MobManager {
         mob.setStats(newStats);
         mob.setTier(tier);
         mob.setMobType(mobType);
+        return true;
+    }
+
+    public boolean setBehaviour(UUID uuid, Behaviour behaviour) {
+        MobData mob = mobDataMap.get(uuid);
+        if (mob == null) return false;
+
+        mob.setBehaviour(behaviour);
         return true;
     }
 
@@ -62,6 +92,13 @@ public class MobManager {
     public List<UUID> getAllMobsOfTier(Tier tier) {
         return mobDataMap.values().stream()
                 .filter(mob -> mob.getTier() == tier)
+                .map(MobData::getUuid)
+                .collect(Collectors.toList());
+    }
+
+    public List<UUID> getAllMobsOfBehaviour(Behaviour behaviour) {
+        return mobDataMap.values().stream()
+                .filter(mob -> mob.getBehaviour() == behaviour)
                 .map(MobData::getUuid)
                 .collect(Collectors.toList());
     }
