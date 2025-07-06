@@ -359,21 +359,6 @@ public class AsgMobStatsAPI {
         removeTempStat(entity.getUniqueId(), key);
     }
 
-    public static Map<StatType, Integer> getActiveFlatBoosts(UUID uuid) {
-        MobData mob = getMob(uuid);
-        return mob != null ? mob.getActiveFlatBoosts() : Collections.emptyMap();
-    }
-
-    public static Map<StatType, Integer> getActivePercentBoosts(UUID uuid) {
-        MobData mob = getMob(uuid);
-        return mob != null ? mob.getActivePercentBoosts() : Collections.emptyMap();
-    }
-
-    public static int getBoostRemainingTime(UUID uuid, StatType stat) {
-        MobData mob = getMob(uuid);
-        return mob != null ? mob.getBoostRemainingTime(stat) : 0;
-    }
-
     public static boolean applyTemporaryBoosts(UUID uuid,
                                                Map<StatType, Integer> flatBoosts,
                                                Map<StatType, Integer> percentBoosts,
@@ -401,6 +386,21 @@ public class AsgMobStatsAPI {
         }
 
         return true;
+    }
+    // Add to AsgMobStatsAPI.java
+    public static Map<StatType, Integer> getActiveFlatBoosts(UUID uuid) {
+        MobData mob = getMob(uuid);
+        return mob != null ? mob.getActiveFlatBoosts() : Collections.emptyMap();
+    }
+
+    public static Map<StatType, Integer> getActivePercentBoosts(UUID uuid) {
+        MobData mob = getMob(uuid);
+        return mob != null ? mob.getActivePercentBoosts() : Collections.emptyMap();
+    }
+
+    public static int getBoostRemainingTime(UUID uuid, StatType stat) {
+        MobData mob = getMob(uuid);
+        return mob != null ? mob.getBoostRemainingTime(stat) : 0;
     }
 
     public static boolean clearTemporaryBoosts(UUID uuid) {
