@@ -5,10 +5,7 @@ import ahjd.asgardus.statserivce.mob.*;
 import ahjd.asgardus.statserivce.utils.StatType;
 import org.bukkit.entity.Entity;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.List;
+import java.util.*;
 
 public class AsgMobStatsAPI {
 
@@ -360,6 +357,57 @@ public class AsgMobStatsAPI {
 
     public static void removeTempStat(Entity entity, String key) {
         removeTempStat(entity.getUniqueId(), key);
+    }
+
+    public static Map<StatType, Integer> getActiveFlatBoosts(UUID uuid) {
+        MobData mob = getMob(uuid);
+        return mob != null ? mob.getActiveFlatBoosts() : Collections.emptyMap();
+    }
+
+    public static Map<StatType, Integer> getActivePercentBoosts(UUID uuid) {
+        MobData mob = getMob(uuid);
+        return mob != null ? mob.getActivePercentBoosts() : Collections.emptyMap();
+    }
+
+    public static int getBoostRemainingTime(UUID uuid, StatType stat) {
+        MobData mob = getMob(uuid);
+        return mob != null ? mob.getBoostRemainingTime(stat) : 0;
+    }
+
+    public static boolean applyTemporaryBoosts(UUID uuid,
+                                               Map<StatType, Integer> flatBoosts,
+                                               Map<StatType, Integer> percentBoosts,
+                                               int duration) {
+        MobData mob = getMob(uuid);
+        if (mob == null) return false;
+
+        String keyPrefix = "gui_boost_" + System.currentTimeMillis() + "_";
+        int boostCount = 0;
+
+        // Apply flat boosts
+        for (Map.Entry<StatType, Integer> entry : flatBoosts.entrySet()) {
+            if (entry.getValue() != 0) {
+                addTempStat(uuid, entry.getKey(), entry.getValue(),
+                        keyPrefix + "flat_" + boostCount++, duration);
+            }
+        }
+
+        // Apply percent boosts
+        for (Map.Entry<StatType, Integer> entry : percentBoosts.entrySet()) {
+            if (entry.getValue() != 0) {
+                addPercentageBoost(uuid, entry.getKey(), entry.getValue(),
+                        keyPrefix + "percent_" + boostCount++, duration);
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean clearTemporaryBoosts(UUID uuid) {
+        MobData mob = getMob(uuid);
+        if (mob == null) return false;
+        mob.clearAllTempStatsAndBoosts();
+        return true;
     }
 
     /**

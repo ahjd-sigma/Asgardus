@@ -46,29 +46,40 @@ public class MobData {
     }
 
     private final Map<String, Runnable> tempBoostRemovers = new ConcurrentHashMap<>();
+    private final Map<String, Long> boostExpiryTimes = new ConcurrentHashMap<>();
+    private final Map<String, Integer> flatBoostValues = new ConcurrentHashMap<>();
     private final Map<String, PercentageBoost> percentageBoosts = new ConcurrentHashMap<>();
-
-    public void addTempStat(StatType stat, int amount, int durationSeconds, String key, Asgardus plugin) {
-        setStat(stat, getStat(stat) + amount);
-        Runnable remover = () -> setStat(stat, getStat(stat) - amount);
-        tempBoostRemovers.put(key, remover);
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            remover.run();
-            tempBoostRemovers.remove(key);
-        }, durationSeconds * 20L);
-    }
 
     public void removeTempStat(String key) {
         Runnable remover = tempBoostRemovers.remove(key);
         if (remover != null) remover.run();
+        boostExpiryTimes.remove(key);
+    }
+
+    public void addTempStat(StatType stat, int amount, int durationSeconds, String key, Asgardus plugin) {
+        int currentValue = getStat(stat);
+        int newValue = currentValue + amount;
+        setStat(stat, newValue);
+
+        flatBoostValues.put(key, amount);
+        long expiryTime = System.currentTimeMillis() + (durationSeconds * 1000L);
+        boostExpiryTimes.put(key, expiryTime);
+
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            removeTempStat(key);
+        }, durationSeconds * 20L);
     }
 
     public void addPercentageBoost(StatType stat, int percent, String key, int durationSeconds, Asgardus plugin) {
         int base = getStat(stat);
         int delta = (base * percent) / 100;
         setStat(stat, base + delta);
+
         PercentageBoost boost = new PercentageBoost(stat, percent, delta);
         percentageBoosts.put(key, boost);
+        long expiryTime = System.currentTimeMillis() + (durationSeconds * 1000L);
+        boostExpiryTimes.put(key, expiryTime);
+
         if (durationSeconds > 0) {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 removePercentageBoost(key);
@@ -76,17 +87,50 @@ public class MobData {
         }
     }
 
+
     public void removePercentageBoost(String key) {
         PercentageBoost boost = percentageBoosts.remove(key);
         if (boost != null) {
             setStat(boost.stat, getStat(boost.stat) - boost.delta);
         }
+        boostExpiryTimes.remove(key);
     }
 
     public void clearAllTempStatsAndBoosts() {
         for (Runnable remover : tempBoostRemovers.values()) remover.run();
         tempBoostRemovers.clear();
         for (String key : percentageBoosts.keySet()) removePercentageBoost(key);
+    }
+
+    public Map<StatType, Integer> getActiveFlatBoosts() {
+        Map<StatType, Integer> boosts = new EnumMap<>(StatType.class);
+        for (Map.Entry<String, Integer> entry : flatBoostValues.entrySet()) {
+            StatType stat = StatType.valueOf(entry.getKey().split("_")[2]); // Extract stat from key
+            boosts.merge(stat, entry.getValue(), Integer::sum);
+        }
+        return boosts;
+    }
+
+    public Map<StatType, Integer> getActivePercentBoosts() {
+        Map<StatType, Integer> boosts = new EnumMap<>(StatType.class);
+        for (PercentageBoost boost : percentageBoosts.values()) {
+            boosts.merge(boost.stat, boost.percent, Integer::sum);
+        }
+        return boosts;
+    }
+
+    public int getBoostRemainingTime(StatType stat) {
+        long now = System.currentTimeMillis();
+        return (int) boostExpiryTimes.entrySet().stream()
+                .filter(entry -> {
+                    String key = entry.getKey();
+                    return (key.contains("flat") && key.contains(stat.name())) ||
+                            (key.contains("percent") && percentageBoosts.containsKey(key) &&
+                                    percentageBoosts.get(key).stat == stat);
+                })
+                .mapToLong(entry -> (entry.getValue() - now) / 1000)
+                .min()
+                .orElse(0);
     }
 
     private static class PercentageBoost {
