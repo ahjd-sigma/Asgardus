@@ -462,6 +462,11 @@ public class AsgMobStatsAPI {
         return switch (stat) {
             case HEALTH, CURRENT_HEALTH -> Math.min(value, 100000);
             case DAMAGE -> Math.min(value, 10000);
+            case WEAPON_DAMAGE -> Math.min(value, 10000);
+            case SPEED -> Math.min(value, 600);
+            case DEFENSE -> Math.min(value , 100000);
+            case INTELLIGENCE -> Math.min(value, 10000);
+            case STRENGTH -> Math.min(value, 10000);
             case HEALTH_REGENERATION -> Math.min(value, 1000);
             case VITALITY -> Math.min(value, 10000);
             case KNOCKBACK -> Math.min(value, 100);

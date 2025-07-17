@@ -2,6 +2,11 @@ package ahjd.asgardus.statserivce.utils;
 
 public enum StatType {
     HEALTH,
+    WEAPON_DAMAGE,
+    STRENGTH,
+    INTELLIGENCE,
+    SPEED,
+    DEFENSE,
     DAMAGE,
     CURRENT_HEALTH,
     HEALTH_REGENERATION,
