@@ -8,9 +8,3 @@ commands:
   stats:
     description: Manage player stats
     usage: /stats [set|add|reset] <stat> <amount> [player]
-    permission: asgardus.admin
-
-permissions:
-  asgardus.admin:
-    description: Allows full stat control
-    default: op

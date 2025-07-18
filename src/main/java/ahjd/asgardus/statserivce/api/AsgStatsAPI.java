@@ -3,7 +3,6 @@ package ahjd.asgardus.statserivce.api;
 import ahjd.asgardus.Asgardus;
 import ahjd.asgardus.statserivce.utils.StatSettings;
 import ahjd.asgardus.statserivce.utils.StatType;
-import org.bukkit.entity.Player;
 
 import java.util.Map;
 import java.util.UUID;
@@ -60,48 +59,59 @@ public class AsgStatsAPI {
     /**
      * Adds a named temporary stat boost to a player.
      */
+    /**
+     * Adds a named temporary stat boost to a player (by UUID).
+     * @param uuid Player UUID
+     * @param stat StatType
+     * @param amount Flat amount to add
+     * @param durationSeconds Duration in seconds (0 for permanent)
+     * @param key Unique key for this boost
+     */
     public static void addTempStat(UUID uuid, StatType stat, int amount, int durationSeconds, String key) {
         requirePlugin().getPlayerManager().getOrCreate(uuid).addTempStat(stat, amount, durationSeconds, key, requirePlugin());
     }
-    public static void addTempStat(Player player, StatType stat, int amount, int durationSeconds, String key) {
-        addTempStat(player.getUniqueId(), stat, amount, durationSeconds, key);
-    }
+
+    /**
+     * Removes a temporary stat boost by key (by UUID).
+     * @param uuid Player UUID
+     * @param key Unique key
+     */
     public static void removeTempStat(UUID uuid, String key) {
         requirePlugin().getPlayerManager().getOrCreate(uuid).removeTempStat(key);
-    }
-    public static void removeTempStat(Player player, String key) {
-        removeTempStat(player.getUniqueId(), key);
     }
     /**
      * Adds a named percentage stat boost to a player.
      */
+    /**
+     * Adds a percentage boost to a stat (by UUID), with a key for easy removal.
+     * Calculation order: (base + all flat boosts) → then apply all percent boosts.
+     * For example: if base=10, flat+5, percent+10% → (10+5)=15, then 15*1.1=16.5
+     * @param uuid Player UUID
+     * @param stat StatType
+     * @param percent Percent boost (e.g. 10 for +10%)
+     * @param key Unique key for this boost
+     * @param durationSeconds Duration in seconds (0 for permanent)
+     */
     public static void addPercentageBoost(UUID uuid, StatType stat, int percent, String key, int durationSeconds) {
         requirePlugin().getPlayerManager().getOrCreate(uuid).addPercentageBoost(stat, percent, key, durationSeconds, requirePlugin());
     }
-    public static void addPercentageBoost(Player player, StatType stat, int percent, String key, int durationSeconds) {
-        addPercentageBoost(player.getUniqueId(), stat, percent, key, durationSeconds);
-    }
+
+    /**
+     * Removes a percentage boost by key (by UUID).
+     * @param uuid Player UUID
+     * @param key Unique key
+     */
     public static void removePercentageBoost(UUID uuid, String key) {
         requirePlugin().getPlayerManager().getOrCreate(uuid).removePercentageBoost(key, requirePlugin());
-    }
-    public static void removePercentageBoost(Player player, String key) {
-        removePercentageBoost(player.getUniqueId(), key);
     }
     /**
      * Clears all temporary and percentage boosts for a player.
      */
+    /**
+     * Clears all temporary and percentage boosts for a player (by UUID).
+     * @param uuid Player UUID
+     */
     public static void clearAllTempStatsAndBoosts(UUID uuid) {
         requirePlugin().getPlayerManager().getOrCreate(uuid).clearAllTempStatsAndBoosts(requirePlugin());
-    }
-    public static void clearAllTempStatsAndBoosts(Player player) {
-        clearAllTempStatsAndBoosts(player.getUniqueId());
-    }
-
-    public static void addStatPercent(UUID uuid, StatType stat, int percent) {
-        requirePlugin().getPlayerManager().getOrCreate(uuid).addStatPercent(stat, percent, requirePlugin());
-    }
-
-    public static void addStatPercent(Player player, StatType stat, int percent) {
-        addStatPercent(player.getUniqueId(), stat, percent);
     }
 }

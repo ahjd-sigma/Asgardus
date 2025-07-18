@@ -44,4 +44,3 @@ AsgStatsAPI.clearAllTempStats(player);
 See the JavaDoc comments in `AsgStatsAPI.java` and `PlayerData.java` for detailed method documentation and usage notes.
 
 ---
-For further questions or contributions, please open an issue or pull request on the repository.

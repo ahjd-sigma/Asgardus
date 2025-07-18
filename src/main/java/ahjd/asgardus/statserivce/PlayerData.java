@@ -6,8 +6,6 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Set;
-
 
 public class PlayerData {
     private final UUID uuid;
